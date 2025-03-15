@@ -1,7 +1,6 @@
 const { default: makeWASocket, useMultiFileAuthState, MessageType } = require('@whiskeysockets/baileys');
 const fs = require('fs');
 const chalk = require('chalk');
-const qrcode = require('qrcode-terminal');
 const express = require('express');
 
 const app = express();
