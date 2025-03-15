@@ -28,7 +28,10 @@ app.listen(port, () => {
 // Function to start the bot
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState("./session");
-    const sock = makeWASocket({ auth: state });
+    const sock = makeWASocket({
+    auth: state,
+    browser: ["Linux", "Chrome", "109.0.0.1"], // Emulates a Linux device
+});
 
     sock.ev.on("creds.update", saveCreds);
     sock.ev.on("connection.update", async ({ qr, connection }) => {
@@ -40,6 +43,7 @@ async function startBot() {
             console.log("✅ Bot Connected");
         }
     });
+
 
     // Listening for messages
     sock.ev.on('messages.upsert', async ({ messages }) => {
