@@ -13,16 +13,43 @@ app.listen(port, () => console.log(`Server started on port ${port}`));
 
 let mutedUsers = {};  // Store muted users with timestamps
 
+const qrcode = require("qrcode");
+
+let qrCodeDataUrl = ""; // Store the QR Code as a data URL
+
 async function startBot() {
-    const { state, saveCreds } = await useMultiFileAuthState('./session');
+    const { state, saveCreds } = await useMultiFileAuthState("./session");
     const sock = makeWASocket({ auth: state });
 
-    sock.ev.on('creds.update', saveCreds);
-    sock.ev.on('connection.update', ({ qr, connection }) => {
-        if (qr) qrcode.generate(qr, { small: true });
-        if (connection === 'open') console.log(chalk.green('Bot Connected ✅'));
-        if (connection === 'close') console.log(chalk.red('Connection Closed ❌'));
+    sock.ev.on("creds.update", saveCreds);
+    sock.ev.on("connection.update", async ({ qr, connection }) => {
+        if (qr) {
+            console.log("Scan the QR Code at /qr");
+            qrCodeDataUrl = await qrcode.toDataURL(qr);
+        }
+
+        if (connection === "open") {
+            console.log("✅ Bot Connected");
+        }
     });
+}
+
+app.get("/", (req, res) => {
+    res.send("Bot is running! Visit <a href='/qr'>/qr</a> to scan the QR code.");
+});
+
+app.get("/qr", (req, res) => {
+    if (qrCodeDataUrl) {
+        res.send(`<img src="${qrCodeDataUrl}" style="width: 300px; height: 300px;">`);
+    } else {
+        res.send("QR Code is not available yet. Please wait...");
+    }
+});
+
+app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+    startBot().catch(console.error);
+});
 
     sock.ev.on('messages.upsert', async ({ messages }) => {
         const msg = messages[0];
